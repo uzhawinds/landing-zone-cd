@@ -1,0 +1,30 @@
+# Switch to correct subscription
+# az login --use-device-code
+# az account set --subscription b33f0285-db27-4896-ac5c-df22004b0aba
+# az account show --output table
+
+# Don't forget to assign owner role for root scope
+# az role assignment create --scope '/' --role 'Owner' --assignee-object-id $(az ad signed-in-user show --query id --output tsv) --assignee-principal-type User
+
+# Region to use
+LOCATION=westeurope
+STAGE='dev'
+# Root management group ID
+# ROOT_MG_ID=b1a8ac21-915f-4351-a075-b30346a974af
+
+az deployment sub create \
+    --name Deployment-$(date +'%Y-%m-%dT%H-%m-%S') \
+    --template-file resource-group.bicep \
+    --location $LOCATION \
+    --parameters \
+        location=$LOCATION \
+        stage=$STAGE
+
+
+az deployment group create \
+    --name Deployment-$(date +'%Y-%m-%dT%H-%m-%S') \
+    --template-file storage.bicep \
+    --resource-group awinds-azure-workshop-$STAGE \
+    --parameters \
+        location=$LOCATION \
+        stage=$STAGE
