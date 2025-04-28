@@ -38,7 +38,7 @@ jobs:
           az deployment group create \
           --name Deployment-$(date +'%Y-%m-%dT%H-%m-%S') \
           --template-file storage.bicep \
-          --resource-group awinds-azure-workshop-$STAGE \
+          --resource-group awinds-azure-workshop-dev \
           --parameters \
               location=$LOCATION \
-              stage=$STAGE
+              stage=dev
