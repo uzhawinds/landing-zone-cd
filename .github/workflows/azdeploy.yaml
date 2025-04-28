@@ -32,3 +32,13 @@ jobs:
             --parameters \
                 location=westeurope \
                 stage=dev
+
+      - name: 'Deploy Storage to Azure'
+        run: |
+          az deployment group create \
+          --name Deployment-$(date +'%Y-%m-%dT%H-%m-%S') \
+          --template-file storage.bicep \
+          --resource-group awinds-azure-workshop-$STAGE \
+          --parameters \
+              location=$LOCATION \
+              stage=$STAGE
