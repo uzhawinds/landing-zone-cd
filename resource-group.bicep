@@ -1,16 +1,19 @@
 targetScope = 'subscription'
 
-@description('The location where the resource group will be created')
-param location string = 'westeurope'
+@description('Name of the project')
+param projectName string = 'awinds-uzh-training'
 
-param stage string = 'dev'
+@description('Location of the resources, uses Sweden Central by default')
+param location string = 'swedencentral'
 
-resource group 'Microsoft.Resources/resourceGroups@2024-11-01' = {
-  name: 'awinds-azure-workshop-${stage}'
+resource rg 'Microsoft.Resources/resourceGroups@2024-11-01' = {
+  name: projectName
   location: location
   tags: {
-    stage: 'dev'
-    project: 'course-management'
-    'hidden-title': 'invisible title'
+    Project: projectName
   }
 }
+
+output rgName string = rg.name
+output subscriptionId string = subscription().subscriptionId
+

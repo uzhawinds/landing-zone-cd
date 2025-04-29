@@ -7,24 +7,55 @@
 # az role assignment create --scope '/' --role 'Owner' --assignee-object-id $(az ad signed-in-user show --query id --output tsv) --assignee-principal-type User
 
 # Region to use
-LOCATION=westeurope
-STAGE='dev'
+# LOCATION=westeurope
+LOCATION=swedencentral
+PROJECT_NAME=awinds-glinsg-workshop
 # Root management group ID
 # ROOT_MG_ID=b1a8ac21-915f-4351-a075-b30346a974af
+ADMIN_PRINCIPAL_ID=c8d715f0-5b78-4f12-bafb-c0255088a731
+ADMIN_PRINCIPAL_ID2=99b75f3e-7b7d-4d83-a1dc-e7f52371a4bc
 
-az deployment sub create \
-    --name Deployment-$(date +'%Y-%m-%dT%H-%m-%S') \
+# Deploy resource group
+RGNAMES=$(az deployment sub create \
+    --name Deployment-$(date +"%Y-%m-%dT%H-%M-%S") \
     --template-file resource-group.bicep \
     --location $LOCATION \
     --parameters \
+        projectName=$PROJECT_NAME \
         location=$LOCATION \
-        stage=$STAGE
+    | jq .properties.outputs)
+RG=$(echo $RGNAMES | jq -r .rgName.value)
+SUBSCRIPTION=$(echo $RGNAMES | jq -r .subscriptionId.value)
+echo "Resource group: $RG"
+echo "Subscription ID: $SUBSCRIPTION"
 
-
-az deployment group create \
-    --name Deployment-$(date +'%Y-%m-%dT%H-%m-%S') \
-    --template-file storage.bicep \
-    --resource-group awinds-azure-workshop-$STAGE \
+# Deploy Central Infrastructure
+DEPLOY_RESULT=$(az deployment group create \
+    --resource-group $RG \
+    --name Deployment-$(date +"%Y-%m-%dT%H-%M-%S") \
+    --template-file central-infrastructure.bicep \
     --parameters \
-        location=$LOCATION \
-        stage=$STAGE
+        projectName=$PROJECT_NAME \
+        tags="{\"Project\":\"$PROJECT_NAME\"}" \
+        adminPrincipalId=$ADMIN_PRINCIPAL_ID \
+        adminPrincipalId2=$ADMIN_PRINCIPAL_ID2 \
+    | jq .properties.outputs)
+ACR_NAME=$(echo $DEPLOY_RESULT | jq -r .registryName.value)
+echo "ACR name: $ACR_NAME"
+
+#az deployment sub create \
+#    --name Deployment-$(date +'%Y-%m-%dT%H-%m-%S') \
+#    --template-file resource-group.bicep \
+#    --location $LOCATION \
+#    --parameters \
+#        location=$LOCATION \
+#        stage=$STAGE
+
+
+#az deployment group create \
+#    --name Deployment-$(date +'%Y-%m-%dT%H-%m-%S') \
+#    --resource-group awinds-azure-workshop-$STAGE \
+#    --template-file storage.bicep \
+#    --parameters \
+#        location=$LOCATION \
+#        stage=$STAGE
